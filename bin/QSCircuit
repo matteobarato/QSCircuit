@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+import argparse
+# use QSCircuit libreary
+from QSCircuit import QSCircuit
+
+_flag_verbose = False
+def verbose(arg):
+	# simple verbose printing function
+    if _flag_verbose: print (arg)
+
+def main(args, function):
+	# starting input dimension of qubit-register for custom circuits
+    starting_dim_reg = args.input[0]-1 if args.input else 0
+
+    # intialize class with starting input dimension of qubit-register
+    qsCircuit = QSCircuit.QSCircuit(starting_dim_reg)
+
+    # set boolean function to convert
+    parsed_input = qsCircuit.set_input(function)
+    verbose("qsCircuit.input: "+str(parsed_input))
+
+	# optimize compiled circuit during conversion if required
+    if args.optimize:
+    	# set
+        qsCircuit.setOptimize(True)
+    else:
+        qsCircuit.setOptimize(False)
+
+    # convert input function into quanistic circuit
+    converted_circuit = qsCircuit.convert()
+
+    if args.print_circuit:
+    	# print quantum circuit scheme
+        qsCircuit.print_circuit()
+
+	# return circuit as a List
+    circuit = qsCircuit.asList()
+    verbose('Register Size: ' + str(qsCircuit.get_regiser_size()))
+    verbose('N. operations: ' + str(len(circuit)))
+    print ('Quantum Operation: ' + qsCircuit.asString())
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument("-i", "--input", help="starting n-qubit register", type=int, nargs=1)
+parser.add_argument("function", help="function to tranform ", nargs=1)
+parser.add_argument("-v", "--verbose", help="verbose log", action='store_true')
+parser.add_argument("-o", "--optimize", help="optimize quantum circuit", action='store_true')
+parser.add_argument("-p", "--print_circuit", help="print quantum circuit scheme", action='store_true')
+
+args = parser.parse_args()
+if (args.verbose): _flag_verbose = True
+
+main(args, args.function[0])
+
+# Exemples of linear boolean functions:
+# "(x2 & x3 & x4 ) ^ (x2 & x3 & x5 ) ^ (x1 & x2 ) ^ (x3 & x4)  ^ (x4 & x5 ) ^ x3)"
+# "((($0 & $1) ^ ($0 & $2)) ^ ($1 &  $2))"
+# "x0 & x1 & x2 & x4 ^ x5"
