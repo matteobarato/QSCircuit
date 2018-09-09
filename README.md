@@ -1,29 +1,29 @@
 # Quantum Script Circuit
 Quantum circuit generator (for [Quantum Computing Playground](http://www.quantumplayground.net)) from booelan's logic functions using NCT libary (Not, CNOT, Toffoli)
 
-##Supported Classic Gates (C style):
-	- ~	not
-	- |	or
-	- &	and
-	- ^	xor
+## Supported Classic Gates (C style):
+	* ~	not
+	* |	or
+	* &	and
+	* ^	xor
 
-##Installation:
+## Installation:
 Into project's folder:
 ```
-	pip install .
+pip install .
 ```
 	or
 ```
-	pip install . --user
+pip install . --user
 ```
-##Usage example:
+## Usage example:
 ```
-	QSCircuit "(x2 & x3 & x4 ) ^ (x2 & x3 & x5 ) ^ (x1 & x2 ) ^ (x3 & x4)  ^ (x4 & x5 ) ^ x3)" -o -v -p
+QSCircuit "(x2 & x3 & x4 ) ^ (x2 & x3 & x5 ) ^ (x1 & x2 ) ^ (x3 & x4)  ^ (x4 & x5 ) ^ x3)" -o -v -p
 ```
 Optionale arguments:
-	- *- o* optimize circuit for use less Gates
-	- *- p* print schema of quantum circuit
-	- *- v* verbose
+	* *- o* optimize circuit for use less Gates
+	* *- p* print schema of quantum circuit
+	* *- v* verbose
 
  for other info:
 ```
