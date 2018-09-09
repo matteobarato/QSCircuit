@@ -2,10 +2,10 @@
 Quantum circuit generator (for [Quantum Computing Playground](http://www.quantumplayground.net)) from booelan's logic functions using NCT libary (Not, CNOT, Toffoli)
 
 ## Supported Classic Gates (C style):
-	- ~ not
-	- | or
-	- & and
-	- ^ xor
+* ~ not
+* | or
+* & and
+* ^ xor
 
 ## Installation:
 Into project's folder:
