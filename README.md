@@ -1,4 +1,4 @@
-# Quantum Script Circuit
+# QSCircuit: Quantum Script Circuit
 Quantum circuit generator (for [Quantum Computing Playground](http://www.quantumplayground.net)) from booelan's logic functions using NCT libary (Not, CNOT, Toffoli)
 
 ## Supported Classic Gates (C style):
@@ -16,7 +16,7 @@ pip install . --user
 ```
 ## Usage example:
 ```
-QSCircuit "(x2 & x3 & x4 ) ^ (x2 & x3 & x5 ) ^ (x1 & x2 ) ^ (x3 & x4)  ^ (x4 & x5 ) ^ x3)" -o -v -p
+QSConvert "(x2 & x3 & x4 ) ^ (x2 & x3 & x5 ) ^ (x1 & x2 ) ^ (x3 & x4)  ^ (x4 & x5 ) ^ x3)" -o -v -p
 ```
 Optional arguments:
 * *- o* optimize circuit for use less Gates
@@ -25,7 +25,7 @@ Optional arguments:
 
  for other info:
 ```
-QSCircuit -h
+QSConvert -h
 ```
 
 ## Examples of linear boolean functions:

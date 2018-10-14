@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.0.1",
     author="Matteo Barato",
     author_email="matteo.barato@studio.unibo.it",
-    description="QSCircuit package",
+    description="QSConvert package",
     long_description=long_description,
     long_description_content_type="text/markdown",
     # url="https://github.com/pypa/example-project",

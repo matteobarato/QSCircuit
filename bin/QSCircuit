@@ -10,7 +10,7 @@ def verbose(arg):
 
 def main(args, function):
 	# starting input dimension of qubit-register for custom circuits
-    starting_dim_reg = args.input[0]-1 if args.input else 0
+    starting_dim_reg = args.reg_size[0]-1 if args.reg_size else 0
 
     # intialize class with starting input dimension of qubit-register
     qsCircuit = QSCircuit.QSCircuit(starting_dim_reg)
@@ -37,11 +37,12 @@ def main(args, function):
     circuit = qsCircuit.asList()
     verbose('Register Size: ' + str(qsCircuit.get_regiser_size()))
     verbose('N. operations: ' + str(len(circuit)))
-    print ('Quantum Operation: ' + qsCircuit.asString())
+    verbose('Result Operation: ' + qsCircuit.asString())
+    print('QScript Circuit: ' + qsCircuit.asQScript())
 
-parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument("-i", "--input", help="starting n-qubit register", type=int, nargs=1)
-parser.add_argument("function", help="function to tranform ", nargs=1)
+parser = argparse.ArgumentParser(description="Boolean function converter into QScript gates. Input funciton must be express in C-styles '~, &, |, ^'. ")
+parser.add_argument("-r", "--register-size", help="starting n-qubit register", type=int, nargs=1, default=0, dest="reg_size")
+parser.add_argument("function", help="function that describe classical circuit ", nargs=1)
 parser.add_argument("-v", "--verbose", help="verbose log", action='store_true')
 parser.add_argument("-o", "--optimize", help="optimize quantum circuit", action='store_true')
 parser.add_argument("-p", "--print_circuit", help="print quantum circuit scheme", action='store_true')
@@ -53,5 +54,5 @@ main(args, args.function[0])
 
 # Exemples of linear boolean functions:
 # "(x2 & x3 & x4 ) ^ (x2 & x3 & x5 ) ^ (x1 & x2 ) ^ (x3 & x4)  ^ (x4 & x5 ) ^ x3)"
-# "((($0 & $1) ^ ($0 & $2)) ^ ($1 &  $2))"
+# "(((x0 & x1) ^ (x0 & x2)) ^ (x1 &  x2))"
 # "x0 & x1 & x2 & x4 ^ x5"

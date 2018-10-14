@@ -12,7 +12,6 @@ class Ancilla:
         QSCircuit (QSCircuit): instance of QSCircuit: where ancilla qbit will added.
     """
     value = 0
-    n_args = 0
     position = 0
     QSCircuit = None
 
@@ -27,9 +26,7 @@ class Ancilla:
         return not bool(re.match(r'(^x\d+$)', qubit ))
 
     def __init__(self, QSCircuit):
-
         self.QSCircuit = QSCircuit
-        pass
 
     def set(self, value):
         self.position = self.QSCircuit.increase_input()
@@ -48,18 +45,20 @@ class QSCircuit:
     optimized = False
     Gates = ['~','&','|','^']
     results = []
+    n_args = 0
+    inverted_gates = []
 
     def __init__(self, starting_dim_register=0):
         self.dim_register = starting_dim_register
 
-    def is_valid_input(self, qubit):
-        """Check if qubit is a boolean logic's valid input
+    def is_valid_input(self, input):
+        """Check if input is a valid circuit input or gate
         Args:
             qubit(string): input of QSCircuit
         Reutrns:
             bool: True if is ancilla qubit, False otherwise.
         """
-        return bool(re.match(r'(^x\d+$)', qubit))
+        return bool(re.match(r'(^x\d+$)', input)) or input in self.Gates
 
     def increase_input(self):
         """Increase the register size for the next input qubit"""
@@ -93,22 +92,18 @@ class QSCircuit:
         if not ancilla: ancilla= Ancilla(self)
 
         if op in self.Gates:
-            if op=='~':
-                if (self.optimized):
-                    # if it is an ancilla we can override its value
-                    if (Ancilla.isAncilla(first)):
-                        self.results.append(['SigmaX', first])
-                        return first
-                ancilla_pos = ancilla.set(1)
-                self.results.append(['CNot', first, ancilla_pos])
-                return ancilla_pos
+            if op=='~': #NOT
+                if (first not in self.inverted_gates): # otherwise is yet an inverted quibit
+                    self.results.append(['SigmaX', first])
+                    self.inverted_gates.append(first)
+                return first
 
-            elif op=='&':
+            elif op=='&': #AND
                 ancilla_pos = ancilla.set(0)
                 self.results.append(['Toffoli', first, second, ancilla_pos])
                 return ancilla_pos
 
-            elif op=='^':
+            elif op=='^': #XOR
                 if (self.optimized):
                     # if it is an ancilla we can override its value
                     if (Ancilla.isAncilla(first)):
@@ -122,7 +117,7 @@ class QSCircuit:
                 self.results.append(['CNot', second, ancilla_pos])
                 return ancilla_pos
 
-            elif op=='|':
+            elif op=='|': #OR
                 ancilla_pos = ancilla.set(0) # QUESTION: verificare se si puo fare di meglio
                 self.results.append(['Toffoli', first, second, ancilla_pos])
                 self.results.append(['CNot', first, ancilla_pos])
@@ -150,14 +145,14 @@ class QSCircuit:
         comparison_term = identifier | number
         condition = pp.Group(comparison_term)
 
-        expr = pp.operatorPrecedence(condition,[
+        parser = pp.operatorPrecedence(condition,[
                                     (self.Gates[0], 1, pp.opAssoc.RIGHT, ), # ~
                                     (self.Gates[1], 2, pp.opAssoc.LEFT, ),  # &
                                     (self.Gates[2], 2, pp.opAssoc.LEFT, ),  # |
                                     (self.Gates[3], 2, pp.opAssoc.LEFT, ),  # ^
                                 ])
         pp.ParserElement.enablePackrat()
-        self.operations_list = expr.parseString(function).asList()
+        self.operations_list = parser.parseString(function).asList()
         return self.operations_list
 
     def convert(self):
@@ -180,7 +175,10 @@ class QSCircuit:
             list: quantum circuit operations.
         """
         if not isinstance(ops_list, list):
+            if not self.is_valid_input(ops_list):
+                print("ERROR: "+str(ops_list)+" is not a valid input. (ex. x1,x2,x....)")
             return ops_list
+
         if len(ops_list) == 1 : # [ $ ]
             return self.dfs_convert(ops_list[0])
 
@@ -194,7 +192,7 @@ class QSCircuit:
             ancilla_res = Ancilla(self)
             for val in ops_list:
                 inputs.append(self.dfs_convert(val))
-                if len(inputs) >= 3 :
+                if len(inputs) == 3 :
                     if self.optimized and (inputs[1]=='&' or inputs[1]=='^'):
                         tmp_pos = self.add_to_circuit( inputs[1],inputs[2], inputs[0])
                     else:
@@ -211,8 +209,8 @@ class QSCircuit:
             space = ""
             for i in range(2- ((h_index+1)/10)):
                 space += " "
-            if h_index < self.n_args :
-                res[0].append('|x'+str(h_index+1)+'> '+space)
+            if h_index <= (self.n_args) :
+                res[0].append('|x'+str(h_index)+'> '+space)
                 res[0].append("       ")
             else:
                 res[0].append('|0>    ')
@@ -225,7 +223,7 @@ class QSCircuit:
             output = ''     # output's position
             if val[0] == 'Toffoli':
                 # ['Toffoli', first, second, output]
-                inputs.append(int(val[1]) if Ancilla.isAncilla(val[1]) else int(val[1][1:]))
+                inputs.append(int(val[1 ]) if Ancilla.isAncilla(val[1]) else int(val[1][1:]))
                 inputs.append(int(val[2]) if Ancilla.isAncilla(val[2]) else int(val[2][1:]))
                 output = int(val[3])
 
@@ -238,7 +236,7 @@ class QSCircuit:
                 # ['SigmaX', output]
                 output = int(val[1])
 
-            for i in range(1,self.dim_register+1): # remember the column of header
+            for i in range(0,self.dim_register+1): # remember the column of header
                 if i in inputs:
                     res[index+1].append('--X--')
                     find = True
@@ -254,7 +252,7 @@ class QSCircuit:
                 else:
                     res[index+1].append('     ')
         # transposed res list for print circuit scheme in correct order
-        for j in range(0,self.dim_register*2):
+        for j in range(0,self.dim_register*2+1):
             line = ""
             for z in range(0,len(res)):
                 line+=res[z][j]
@@ -270,4 +268,7 @@ class QSCircuit:
 
     def asString(self):
         """Return converted quantum circuit as string of quantum gates"""
-        return '; '.join(map(lambda x: x[0]+' '+(', '.join(x[1:])), self.results))+';   '
+        return ('; '.join(map(lambda x: x[0]+' '+(', '.join(x[1:])), self.results))+';   ')
+    def asQScript(self):
+        """Return converted quantum circuit as string of quantum gates"""
+        return ('; '.join(map(lambda x: x[0]+' '+(', '.join(x[1:])), self.results))+';   ').replace('x', '')
